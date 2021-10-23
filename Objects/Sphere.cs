@@ -1,50 +1,54 @@
 ﻿using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using PathTracer.Materials;
 using PathTracer.Rays;
 
 namespace PathTracer.Objects
 {
-    public class Sphere : Body
+    public class Sphere
     {
+        public Vector3 Position { get; set; }
         public float Radius { get; set; }
+        public IMaterial Material { get; set; }
 
-        public Sphere(Vector3 position, float radius, IMaterial mat) : base(position, mat)
+        public Sphere(float x, float y, float z, float radius, IMaterial mat)
         {
+            Position = new Vector3(x, y, z);
             Radius = radius;
+            Material = mat;
         }
 
-        public override Vector3 SurfaceNormalAtP(Vector3 p)
+        public Vector3 NormalAtP(Vector3 p)
         {
-            return Position + p;
+            return (p - Position);
         }
 
         /// <summary>
-        /// calculates if a ray hits this object
+        /// Moves a point p outside of this sphere if it is inside of it.
         /// </summary>
-        /// <param name="ray"></param>
-        /// <returns>length at which the ray intersects or -1 if it doesn't</returns>
-        public override float Intersection(Ray ray)
+        /// <param name="p">A point p</param>
+        /// <returns>Vector of P if it's been moved or p if it wasn't</returns>
+        public Vector3 MoveIfPIsInside(Vector3 p)
         {
-            var b = Vector3.Dot(2 * (Position - ray.Origin), Vector3.Normalize(ray.Direction));
-            var c = (Position - ray.Origin).LengthSquared() - (Radius * Radius);
 
-            // Quadratic Formula
-            var discriminant = (b * b) - (4 * c);
-            if (discriminant < 0) return -1f;
-            var sqrt = Math.Sqrt(discriminant);
-            var l1 = (float)(b + sqrt) / 2;
-            var l2 = (float)(b - sqrt) / 2;
+            Vector3 n = NormalAtP(p);
+            var pm = p;
+            while(n.LengthSquared() < Radius * Radius)
+            {
+                pm += n / 10000;
+                n = NormalAtP(pm);
+            }
 
-            if (l1 < 0 && l2 < 0) return -1f;
-            if (l1 < 0) return l2;
-            if (l2 < 0) return l1;
-            return (l1 < l2) ? l1 : l2;
+            return pm;
         }
 
-        public override float DistanceToCamera(Camera camera)
+        public override string ToString()
         {
-            return (Position - camera.Position).Length() - Radius;
+            return $"Body=(Position:'{Position}', Color: '{Material.DiffuseColor()}')";
         }
+
+
+
     }
 }

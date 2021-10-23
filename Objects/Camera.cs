@@ -26,7 +26,7 @@ namespace PathTracer.Objects
                 Vector3.Normalize(f) +
                 MathF.Tan(FOV * (MathF.PI / 180f) / 2f) * x * Vector3.Normalize(r) +
                 MathF.Tan(FOV * (MathF.PI / 180f) / 2f) * y * Vector3.Normalize(u);
-            return new Ray(Position, d);
+            return new Ray(Position, Vector3.Normalize(d));
         }
 
     }
